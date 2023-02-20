@@ -21,37 +21,36 @@ ChartJS.register(
 );
 
 import type { ChartData, ChartOptions } from "chart.js";
-import { useState } from "react";
-import useSWR from "swr";
+import { useEffect, useMemo, useState } from "react";
 
-const fetcher = async (...args: Parameters<typeof fetch>) =>
-  await fetch(...args).then((res) => {
-    if (!res.ok) throw new Error("データの取得に失敗");
-    return res.json();
-  });
+import fetcher from "./fetcher";
 
-const RealTimeChart = () => {
-  const initArr = new Array(60).fill(0);
+const LineChart = () => {
+  const initArr = useMemo(() => new Array(60).fill(0), []);
+  const labels = useMemo(() => [...initArr], [initArr]);
+
   const [genderCount, setGenderCount] = useState({
     male: [...initArr],
     female: [...initArr],
     total: [...initArr],
   });
-  useSWR("/api/count", fetcher, {
-    refreshInterval: 1000,
-    onSuccess: (data) => {
-      setGenderCount((cnt) => {
-        const male = [...cnt.male.slice(1), cnt.male.slice(-1)[0] + data.count.male];
-        const female = [...cnt.female.slice(1), cnt.male.slice(-1)[0] + data.count.female];
-        const total = [
-          ...cnt.total.slice(1),
-          cnt.total.slice(-1)[0] + data.count.male + data.count.female,
-        ];
-        return { male, female, total };
+
+  useEffect(() => {
+    let interval = setInterval(() => {
+      fetcher("/api/count").then((data) => {
+        setGenderCount((cnt) => {
+          const male = [...cnt.male.slice(1), data.count.male];
+          const female = [...cnt.female.slice(1), data.count.female];
+          const total = [...cnt.total.slice(1), data.count.male + data.count.female];
+          return { male, female, total };
+        });
       });
-    },
-  });
-  const labels = genderCount.male.map((cnt, index) => index);
+    }, 1000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
   const legends = {
     male: `male:${genderCount.male.slice(-1)[0]}`,
     female: `female:${genderCount.female.slice(-1)[0]}`,
@@ -87,6 +86,14 @@ const RealTimeChart = () => {
         radius: 0,
       },
     },
+    scales: {
+      x: {
+        stacked: true,
+        ticks: {
+          display: false,
+        },
+      },
+    },
   };
   return (
     <div>
@@ -94,4 +101,4 @@ const RealTimeChart = () => {
     </div>
   );
 };
-export default RealTimeChart;
+export default LineChart;
