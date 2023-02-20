@@ -1,4 +1,5 @@
 import BarChart from "@/components/BarChart";
+import FlipImage from "@/components/FlipImage";
 import { Header } from "@/components/Header";
 import Head from "next/head";
 
@@ -12,7 +13,10 @@ export default function About() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header />
-      <BarChart />
+      <div className="m-8">
+        <BarChart />
+        <FlipImage />
+      </div>
     </>
   );
 }

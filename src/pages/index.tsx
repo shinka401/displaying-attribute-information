@@ -1,3 +1,4 @@
+import FlipImage from "@/components/FlipImage";
 import { Header } from "@/components/Header";
 import LineChart from "@/components/LineChart";
 import Head from "next/head";
@@ -12,7 +13,10 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header />
-      <LineChart />
+      <div className="m-8">
+        <LineChart />
+        <FlipImage />
+      </div>
     </>
   );
 }
